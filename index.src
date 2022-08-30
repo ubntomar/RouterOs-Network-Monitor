@@ -1,0 +1,41 @@
+:log warning "STARTING..."
+:local leo "181.60.60.57"
+:log info "Monitoring if ('ACACIAS-Leo' Network $leo ) is alive:";
+:local arturo "192.168.84.1"
+:local google "8.8.8.8"
+:delay 6000ms
+
+:log info " Starting ping to $leo >>>";
+:if (!([/ping $leo interval=1 count=15] != 0)) do={
+        :log warning " $leo NO PING, we proceed to make a network  backup from this RB! ...";
+    :if ([/ping $arturo interval=1 count=5] != 0) do={
+        :log info " $arturo ping OK ...";
+        :delay 60000ms
+        :log info " Starting ping to $google >>>";
+        :if ([/ping $google interval=1 count=5] != 0) do={
+            :log info " $google ping OK ...";
+            /ip address enable [find address="192.168.15.1/24"]
+            /ip address enable [find address="192.168.30.1/24"]
+            /ip address enable [find address="192.168.60.1/24"]
+            /ip address enable [find address="192.168.200.1/24"]
+            /ip address enable [find address="192.168.29.2/30"]
+            :global txtt ;
+            set txtt "Alerta!:\tHa\tsido\tactivado\tel\trespaldo\ta\tla\tred\tLeo\tAcacias";
+            # please replace <./.env> witdh the telegram API key.
+            /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=<./.env>&text=$txtt" keep-result=no
+           } else {
+            :log warning " $google ping FALSE ...No es posible reslpaldar la red 30...";
+            /ip address disable [find address="192.168.15.1/24"]
+            /ip address disable [find address="192.168.30.1/24"]
+            /ip address disable [find address="192.168.60.1/24"]
+            /ip address disable [find address="192.168.200.1/24"]
+            /ip address disable [find address="192.168.29.2/30"]
+        }
+    } else {
+        :log warning " $arturo ping FALSE ...ins't possible to backup the  30's network"; 
+    }
+} else {
+    :log info " PING ON $leo IS OK. Therefore don't make a backup from this RB "
+}
+:log warning "...ENDING"
+:log info ""
