@@ -3,10 +3,9 @@
 :log info "Monitoring if ('ACACIAS-Leo' Network $leo ) is alive:";
 :local arturo "192.168.84.1"
 :local google "8.8.8.8"
-:delay 6000ms
-
+:delay 60000ms
 :log info " Starting ping to $leo >>>";
-:if (!([/ping $leo interval=1 count=15] != 0)) do={
+:if (!([/ping $leo interval=1 count=25] != 0)) do={
         :log warning " $leo NO PING, we proceed to make a network  backup from this RB! ...";
     :if ([/ping $arturo interval=1 count=5] != 0) do={
         :log info " $arturo ping OK ...";
@@ -39,3 +38,29 @@
 }
 :log warning "...ENDING"
 :log info ""
+
+
+
+
+:log warning "Begining";
+:global LeoHOST "181.60.60.57";
+:delay 2000ms
+:if ([/ping $LeoHOST interval=1 count=15] != 0) do={
+    :log warning "SI dio ping la $LeoHOST DESABILITAMOS desde el retiro"; 
+    /ip address disable [find address="192.168.15.1/24"]
+    /ip address disable [find address="192.168.30.1/24"]
+    /ip address disable [find address="192.168.60.1/24"]
+    /ip address disable [find address="192.168.200.1/24"]
+    /ip address disable [find address="192.168.29.2/30"]
+    :global messageDisabling;
+    set messageDisabling "IMPORTANTE:\tYa\tdio\tping\tla\t$LeoHOST\tDESABILITAMOS\tBACKUP\tdesde\tel\tretiro";
+    /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=-340818870&text=$messageDisabling" keep-result=no
+    :log warning "ENDIF";
+} else {
+    :log warning "IMPORTANTE: NO dio ping la $LeoHOST DEBE CONTINUAR BACKUP desde el retiro"; 
+    :global messageDoingNothing;
+    set messageDoingNothing "IMPORTANTE:\tNO\tda\tping\tla\t$LeoHOST\tDEBE\tcontinuar\tBACKUP\tdesde\tel\tretiro";
+    /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=-340818870&text=$messageDoingNothing" keep-result=no
+    :log warning "ENDELSE";
+    }
+:log warning "END";
