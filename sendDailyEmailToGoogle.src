@@ -1,0 +1,26 @@
+/tool e-mail
+set address=173.194.213.108 from=ispexperts.backup@gmail.com password=myGoogleAccountpassword port=587 start-tls=yes user=ispexperts.backup@gmail.com
+
+
+
+
+
+scheduler
+
+# Start Variables Definition
+:global routerName [/system identity get name];
+:global dateNow [/system clock get date];
+:global timeNow [/system clock get time];
+:global sendTo "ispexperts.backup@gmail.com";
+:global subject "\F0\9F\93\A6 BACKUP: [ $routerName ] [ $dateNow ]  ";
+:global body "Backup file attached in this Email Date: $dateNow and Time $timeNow ";
+# End Variables Definition
+# Start Main Script
+# & Make Backup and Send Email
+export file=$routerName
+:delay 3s
+:global fileToUpload "$routerName.rsc";
+:log info "fileToUpload $fileToUpload" 
+/tool e-mail send to=$sendTo body=$body subject=$subject file=$fileToUpload
+# End Main Script
+:log info "Daily backup script completed"

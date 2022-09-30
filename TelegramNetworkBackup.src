@@ -1,15 +1,21 @@
-:log warning "STARTING..."
-:local leo "181.60.60.57"
+:log warning "STARTING because of <DOWN> Netwatch Event"
+:global secret <.env>
+:global seconds 60
+:global leo "181.60.60.57"
+:global arturo "192.168.84.1"
+:global google "8.8.8.8"
+:global downEventLaunched;
+set downEventLaunched "<< Ping a $leo  CAIDO , se procede a esperar $seconds segundos para comprobar nuevamente si ping sigue caido. >>";
+/tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=$secret&text=$downEventLaunched" keep-result=no
 :log info "Monitoring if ('ACACIAS-Leo' Network $leo ) is alive:";
-:local arturo "192.168.84.1"
-:local google "8.8.8.8"
-:delay 60000ms
-:log info " Starting ping to $leo >>>";
+:log info "Delay>>>";
+:delay $seconds
+:log info " Starting ping to $leo once again >>>";
 :if (!([/ping $leo interval=1 count=25] != 0)) do={
         :log warning " $leo NO PING, we proceed to make a network  backup from this RB! ...";
     :if ([/ping $arturo interval=1 count=5] != 0) do={
         :log info " $arturo ping OK ...";
-        :delay 60000ms
+        :delay $seconds
         :log info " Starting ping to $google >>>";
         :if ([/ping $google interval=1 count=5] != 0) do={
             :log info " $google ping OK ...";
@@ -19,9 +25,9 @@
             /ip address enable [find address="192.168.200.1/24"]
             /ip address enable [find address="192.168.29.2/30"]
             :global txtt ;
-            set txtt "Alerta!:\tHa\tsido\tactivado\tel\trespaldo\ta\tla\tred\tLeo\tAcacias";
-            # please replace <./.env> witdh the telegram API key.
-            /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=<./.env>&text=$txtt" keep-result=no
+            set txtt "( No da ping $leo ):\tHa\tsido\tactivado\tel\trespaldo\ta\tla\tred\tLeo\tAcacias";
+            # please replace $secret witdh the telegram API key.
+            /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=$secret&text=$txtt" keep-result=no
            } else {
             :log warning " $google ping FALSE ...No es posible reslpaldar la red 30...";
             /ip address disable [find address="192.168.15.1/24"]
@@ -42,25 +48,51 @@
 
 
 
-:log warning "Begining";
-:global LeoHOST "181.60.60.57";
-:delay 2000ms
+
+
+:log warning "Begining because of <UP> Netwatch Event ";
+:global secret <.env>
+:global seconds 1
+:global LeoHOST "181.60.60.57"
+:global TargetIP "192.168.30.1/24"
+:delay $seconds
 :if ([/ping $LeoHOST interval=1 count=15] != 0) do={
-    :log warning "SI dio ping la $LeoHOST DESABILITAMOS desde el retiro"; 
-    /ip address disable [find address="192.168.15.1/24"]
-    /ip address disable [find address="192.168.30.1/24"]
-    /ip address disable [find address="192.168.60.1/24"]
-    /ip address disable [find address="192.168.200.1/24"]
-    /ip address disable [find address="192.168.29.2/30"]
-    :global messageDisabling;
-    set messageDisabling "IMPORTANTE:\tYa\tdio\tping\tla\t$LeoHOST\tDESABILITAMOS\tBACKUP\tdesde\tel\tretiro";
-    /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=-340818870&text=$messageDisabling" keep-result=no
-    :log warning "ENDIF";
+
+    :if ([/ip address get [find address=$TargetIP] disabled]) do={
+        :log warning " $TargetIP Disabled";
+        :global message;
+        set message " $LeoHOST ok "
+        /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=$secret&text=$message" keep-result=no 
+    } else {
+        :log warning " $TargetIP Enabled"; 
+        :log warning "SI dio ping la $LeoHOST entonces DESABILITAMOS desde el retiro"; 
+        /ip address disable [find address="192.168.15.1/24"]
+        /ip address disable [find address="192.168.30.1/24"]
+        /ip address disable [find address="192.168.60.1/24"]
+        /ip address disable [find address="192.168.200.1/24"]
+        /ip address disable [find address="192.168.29.2/30"]
+        :global messageDisabling;
+        set messageDisabling "IMPORTANTE:\tYa\tdio\tping\tla\t$LeoHOST\tDESABILITAMOS\tBACKUP\tdesde\tel\tretiro";
+        /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=$secret&text=$messageDisabling" keep-result=no
+    }
 } else {
-    :log warning "IMPORTANTE: NO dio ping la $LeoHOST DEBE CONTINUAR BACKUP desde el retiro"; 
+    :log warning "IMPORTANTE: NO da ping la $LeoHOST DEBE CONTINUAR BACKUP desde el retiro"; 
     :global messageDoingNothing;
     set messageDoingNothing "IMPORTANTE:\tNO\tda\tping\tla\t$LeoHOST\tDEBE\tcontinuar\tBACKUP\tdesde\tel\tretiro";
-    /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=-340818870&text=$messageDoingNothing" keep-result=no
-    :log warning "ENDELSE";
+    /tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=$secret&text=$messageDoingNothing" keep-result=no
     }
 :log warning "END";
+
+
+
+
+#/system script run disableRedLeoRbAcacias
+#Disable net Leo from Casa Leo Network if Leo Retiro 192.168.29.2 is up!
+:log info "Monitoring if Leo Network is alive:";
+/ip address disable [find address="192.168.15.1/24"]
+/ip address disable [find address="192.168.30.1/24"]
+/ip address disable [find address="192.168.60.1/24"]
+/ip address disable [find address="192.168.200.1/24"]
+:global txtt ;
+set txtt "Alerta!:\tHa\tsido\tInactivado\tlas\tIps\tde\tla\tred\tLeo\tAcacias\tmientras\ttrabaja\tla\tlinea\tde\trespaldo\ten\tel\tretiro";
+/tool fetch url="https://api.telegram.org/bot896101360:AAFy0Gs_8FET6EZBAEeTJ0qxf-GbLOWQ6Sg/sendMessage\?chat_id=<./.env>&text=$txtt" keep-result=no
